@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  sentinel-backend:
+    build: .
+    container_name: sentinel_fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - API_SECRET=${API_SECRET}
+    restart: unless-stopped
