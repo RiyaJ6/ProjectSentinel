@@ -1,16 +1,16 @@
 <p align="center">
   <img src="banner.svg" alt="Aviation Terminal Operations" width="100%">
-</p>
 
-# Project Sentinel
 
+<div align="center">
+  
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Architecture](https://img.shields.io/badge/architecture-event--driven-8a2be2)
 
 An autonomous turnaround recovery engine for high friction aviation environments. 
 
-Ground operations fail in minutes, not hours. Sentinel is an event driven backend that ingests real time telemetry from airport gates, identifies cascading delay risks before they breach ATC slots and leverages Agentic AI to autonomously deploy mitigation workflows.
+Ground operations fail in minutes not hours. Sentinel is an event driven backend that ingests real time telemetry from airport gates, identifies cascading delay risks before they breach ATC slots and leverages Agentic AI to autonomously deploy mitigation workflows.
 
 ## ⚙️ Core Architecture
 * **Ingestion:** High-throughput Kafka/PubSub stream processing for live ground sensors (Fuel, Catering, Baggage).
@@ -31,6 +31,6 @@ docker-compose up -d
 # 3. View the live telemetry dashboard
 # Navigate to: http://localhost:8000
 ```
-
+</p>
 <div align="center">
 We don't predict the future. We intercept it.
