@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Sentinel | Turnaround Recovery Engine</title>
+    <style>
+        :root {
+            --bg-base: #0a0a0a;
+            --bg-panel: #141414;
+            --text-main: #ededed;
+            --text-muted: #737373;
+            --accent: #2563eb;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --border: #262626;
+        }
+        body { background-color: var(--bg-base); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        .title-block h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        .title-block span { color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 2px; }
+        .live-indicator { display: flex; align-items: center; gap: 8px; color: var(--success); font-weight: bold; font-size: 0.875rem; }
+        .pulse { width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .dashboard { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+        .panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; }
+        .panel h2 { margin: 0 0 15px 0; font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .log-container { flex: 1; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; }
+        .log-entry { padding: 8px; background: rgba(0,0,0,0.3); border-left: 3px solid var(--success); animation: slideIn 0.3s ease-out; }
+        .log-entry.error { border-left-color: var(--danger); color: var(--danger); }
+        .timeline { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
+        .task { margin-bottom: 15px; }
+        .task-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
+        .bar-bg { height: 8px; background: #262626; border-radius: 4px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 1s ease, background-color 0.5s ease; }
+        .bar-fill.warning { background: var(--danger); }
+        .llm-box { background: #000; border: 1px solid var(--accent); padding: 15px; border-radius: 4px; font-size: 0.95rem; line-height: 1.5; flex: 1; position: relative; color: #60a5fa;}
+        .llm-box::before { content: 'Agentic AI Output'; position: absolute; top: -10px; left: 10px; background: var(--bg-panel); padding: 0 5px; font-size: 0.75rem; color: var(--accent); }
+        .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); animation: blink 1s infinite; vertical-align: middle; }
+        .controls { margin-top: 15px; display: flex; gap: 10px; }
+        button { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s; flex: 1; font-size: 0.8rem; text-transform: uppercase;}
+        button:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.05);}
+        button.btn-danger { border-color: var(--danger); color: var(--danger); }
+        button.btn-danger:hover { background: rgba(220, 38, 38, 0.1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-block">
+            <h1>PROJECT SENTINEL</h1>
+            <span>Autonomous Turnaround Recovery Engine</span>
+        </div>
+        <div class="live-indicator"><div class="pulse"></div> SYSTEM ACTIVE</div>
+    </header>
+    <div class="dashboard">
+        <div class="panel">
+            <h2>Kafka Telemetry Stream</h2>
+            <div class="log-container" id="logStream">
+                <div class="log-entry">[12:00:01] FLIGHT A380-EK412 ON BLOCKS</div>
+                <div class="log-entry">[12:02:14] PASSENGER DISEMBARKATION INITIATED</div>
+                <div class="log-entry">[12:05:00] FUEL TRUCK CONNECTED - PUMPING</div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Live Turnaround Matrix (Gate B12)</h2>
+            <div class="timeline">
+                <div class="task">
+                    <div class="task-header"><span>Fueling</span> <span id="time-fuel">45%</span></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-fuel" style="width: 45%;"></div></div>
+                </div>
+                <div class="task">
+                    <div class="task-header"><span>Catering</span> <span id="time-cat">10%</span></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-cat" style="width: 10%;"></div></div>
+                </div>
+                <div class="task">
+                    <div class="task-header"><span>Baggage Loading</span> <span id="time-bag">0%</span></div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-bag" style="width: 0%;"></div></div>
+                </div>
+            </div>
+            <div class="controls">
+                <button onclick="simulateNormal()">Resume Sequence</button>
+                <button class="btn-danger" onclick="triggerAnomaly()">Inject Anomaly</button>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Autonomous Mitigation</h2>
+            <div class="llm-box">
+                <span id="llm-text">System nominal. Monitoring inbound telemetry for sequence violations.</span>
+                <span class="cursor" id="cursor"></span>
+            </div>
+        </div>
+    </div>
+    <script>
+        const logStream = document.getElementById('logStream');
+        const llmText = document.getElementById('llm-text');
+        
+        function addLog(message, isError = false) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${isError ? 'error' : ''}`;
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            entry.innerText = `[${time}] ${message}`;
+            logStream.prepend(entry);
+        }
+
+        function typeLLM(text) {
+            llmText.innerText = "";
+            let i = 0;
+            const speed = 25;
+            function typeWriter() {
+                if (i < text.length) { llmText.innerHTML += text.charAt(i); i++; setTimeout(typeWriter, speed); }
+            }
+            typeWriter();
+        }
+
+        window.triggerAnomaly = function() {
+            document.getElementById('bar-cat').classList.add('warning');
+            document.getElementById('bar-cat').style.width = '12%';
+            document.getElementById('time-cat').innerText = 'STALLED';
+            document.getElementById('time-cat').style.color = '#dc2626';
+
+            addLog("WARN: CATERING TRUCK SENSOR LOST CONNECTION", true);
+            setTimeout(() => addLog("CRITICAL: CATERING DELAY EXCEEDS BUFFER (5 MINS)", true), 800);
+            setTimeout(() => addLog("EVENT: INITIATING AGENTIC RESOLUTION...", true), 1500);
+
+            setTimeout(() => {
+                const prompt = "ANOMALY DETECTED: Catering delay at Gate B12 will cause a cascading block on Baggage Loading operations. ATC Slot window closes in 42 minutes. \n\nMITIGATION DEPLOYED: \n1. Rerouting standard baggage tug to Port Side Aft cargo door.\n2. Alerting Gate Agents to initiate staggered boarding protocols.\n3. Turnaround sequence stabilized. No ATC delay expected.";
+                typeLLM(prompt);
+            }, 2000);
+        };
+
+        window.simulateNormal = function() {
+            document.getElementById('bar-cat').classList.remove('warning');
+            document.getElementById('bar-cat').style.width = '40%';
+            document.getElementById('time-cat').innerText = '40%';
+            document.getElementById('time-cat').style.color = '#737373';
+            addLog("CATERING CONNECTION RESTORED. RESUMING.");
+            typeLLM("System nominal. Cascading delay resolved. Monitoring sequence.");
+        };
+
+        setInterval(() => {
+            if(Math.random() > 0.7) addLog("HEARTBEAT: ALL GROUND SENSORS NOMINAL");
+        }, 5000);
+    </script>
+</body>
+</html>
