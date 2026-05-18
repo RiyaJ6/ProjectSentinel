@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="100%" height="100%">
+  <defs>
+
+    <pattern id="aviationGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+      <circle cx="40" cy="40" r="1" fill="#334155"/>
+    </pattern>
+    
+
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+
+    <linearGradient id="aiStream" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.1"/>
+      <stop offset="50%" stop-color="#38bdf8" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+
+  <rect width="1200" height="400" fill="#020617"/>
+  <rect width="1200" height="400" fill="url(#aviationGrid)"/>
+
+
+  <rect x="0" y="0" width="1200" height="30" fill="#0f172a" stroke-bottom="#1e293b"/>
+  <circle cx="20" cy="15" r="5" fill="#10b981">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="35" y="20" fill="#94a3b8" font-family="monospace" font-size="12" letter-spacing="2">SENTINEL.CORE // SECURE_UPLINK_ESTABLISHED</text>
+  <text x="1050" y="20" fill="#64748b" font-family="monospace" font-size="12">LATENCY: 12ms</text>
+
+
+  <g transform="translate(50, 80)">
+=
+    <text x="0" y="40" fill="#f8fafc" font-family="sans-serif" font-weight="900" font-size="48" letter-spacing="2">PROJECT SENTINEL</text>
+    <text x="2" y="70" fill="#38bdf8" font-family="monospace" font-weight="bold" font-size="14" letter-spacing="3">AUTONOMOUS AVIATION MITIGATION ENGINE</text>
+
+
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="550" height="150" rx="6" fill="#09090b" stroke="#1e293b" stroke-width="2"/>
+   
+      <circle cx="15" cy="15" r="4" fill="#ef4444"/>
+      <circle cx="30" cy="15" r="4" fill="#eab308"/>
+      <circle cx="45" cy="15" r="4" fill="#22c55e"/>
+      <path d="M 0 30 L 550 30" fill="none" stroke="#1e293b" stroke-width="1"/>
+      
+    
+      <g font-family="monospace" font-size="12" fill="#a1a1aa">
+        <text x="15" y="55">[08:42:01] INGEST: Kafka stream connected. Monitoring 42 gates.</text>
+        <text x="15" y="75">[08:42:04] <tspan fill="#ef4444">WARN</tspan>: Flight QA781 catering delay exceeds buffer.</text>
+        <text x="15" y="95">[08:42:05] CALC: Cascading ATC slot violation imminent (T-14m).</text>
+        <text x="15" y="115" fill="#38bdf8" font-weight="bold">> AGENTIC_AI:</text>
+        <text x="110" y="115" fill="#e0f2fe">Executing reroute protocol. Deploying Tug_B.</text>
+        
+   
+        <rect x="440" y="105" width="8" height="14" fill="#38bdf8">
+          <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+        </rect>
+      </g>
+    </g>
+  </g>
+
+  
+  <g transform="translate(620, 190)">
+  
+    <path d="M -20 -15 L 50 -15 L 100 40 L 170 40" fill="none" stroke="#334155" stroke-width="2"/>
+    <path d="M -20 -15 L 50 -15 L 100 40 L 170 40" fill="none" stroke="url(#aiStream)" stroke-width="2">
+      <animate attributeName="stroke-dasharray" values="0,200;200,0" dur="2s" repeatCount="indefinite"/>
+    </path>
+
+    <path d="M -20 65 L 40 65 L 80 10 L 170 10" fill="none" stroke="#334155" stroke-width="2"/>
+    <path d="M -20 65 L 40 65 L 80 10 L 170 10" fill="none" stroke="url(#aiStream)" stroke-width="2">
+      <animate attributeName="stroke-dasharray" values="0,200;200,0" dur="2.5s" repeatCount="indefinite"/>
+    </path>
+
+
+    <circle cx="100" cy="40" r="4" fill="#0ea5e9" filter="url(#glowCyan)"/>
+    <circle cx="80" cy="10" r="4" fill="#0ea5e9" filter="url(#glowCyan)"/>
+  </g>
+
+
+  <g transform="translate(950, 210)">
+
+    <circle cx="0" cy="0" r="140" fill="#040b16" stroke="#1e293b" stroke-width="4"/>
+    <circle cx="0" cy="0" r="140" fill="none" stroke="#0ea5e9" stroke-width="1" stroke-dasharray="2 4"/>
+
+    <circle cx="0" cy="0" r="100" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#10b981" stroke-width="1" opacity="0.4"/>
+    <circle cx="0" cy="0" r="20" fill="none" stroke="#10b981" stroke-width="1" opacity="0.5"/>
+
+
+    <path d="M -140 0 L 140 0 M 0 -140 L 0 140" fill="none" stroke="#10b981" stroke-width="1" opacity="0.4"/>
+    <path d="M -99 -99 L 99 99 M -99 99 L 99 -99" fill="none" stroke="#10b981" stroke-width="0.5" opacity="0.2"/>
+
+    <g>
+      <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="4s" repeatCount="indefinite" />
+      <path d="M 0 0 L 0 -140 A 140 140 0 0 1 99 -99 Z" fill="#10b981" opacity="0.15"/>
+      <line x1="0" y1="0" x2="0" y2="-140" stroke="#10b981" stroke-width="2" filter="url(#glowGreen)"/>
+    </g>
+
+    <g transform="translate(-50, -60)">
+      <circle cx="0" cy="0" r="4" fill="#10b981" filter="url(#glowGreen)">
+        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <text x="8" y="4" fill="#10b981" font-family="monospace" font-size="10">BA109</text>
+      <path d="M 0 0 L 15 -15" fill="none" stroke="#10b981" stroke-width="1" opacity="0.5"/>
+    </g>
+
+    <g transform="translate(70, 40)">
+      <circle cx="0" cy="0" r="3" fill="#10b981"/>
+      <text x="8" y="4" fill="#10b981" font-family="monospace" font-size="10">EK412</text>
+    </g>
+
+    <g transform="translate(40, -80)">
+      <circle cx="0" cy="0" r="5" fill="#ef4444">
+        <animate attributeName="r" values="5;8;5" dur="1s" repeatCount="indefinite"/>
+      </circle>
+      <text x="10" y="4" fill="#ef4444" font-family="monospace" font-size="11" font-weight="bold">QA781</text>
+   
+      <path d="M -10 -10 L -10 -15 L -5 -15 M 10 -10 L 10 -15 L 5 -15 M -10 10 L -10 15 L -5 15 M 10 10 L 10 15 L 5 15" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="90 0 0" dur="4s" repeatCount="indefinite" />
+      </path>
+    </g>
+
+  
+    <path d="M 40 -80 L 70 -50 L 50 -10" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 4" filter="url(#glowCyan)">
+      <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite"/>
+    </path>
+    <text x="75" y="-45" fill="#38bdf8" font-family="monospace" font-size="9">AI_REROUTE</text>
+
+  </g>
+
+ 
+  <rect x="0" y="396" width="1200" height="4" fill="#38bdf8"/>
+</svg>
