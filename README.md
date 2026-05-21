@@ -24,7 +24,7 @@ Run the system simulation locally in under 60 seconds:
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/yourusername/sentinel-ops-orchestrator.git](https://github.com/yourusername/sentinel-ops-orchestrator.git)
+git clone [https://github.com/RiyaJ6/sentinel-ops-orchestrator.git](https://github.com/RiyaJ6/sentinel-ops-orchestrator.git)
 
 # 2. Spin up the containerized architecture
 docker-compose up -d
