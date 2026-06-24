@@ -6,227 +6,993 @@
     <title>Project Sentinel | Autonomous Turnaround Control</title>
     <style>
         :root {
-            --bg-base: #050506;
-            --bg-panel: #0b0c10;
-            --text-main: #f1f5f9;
+            --bg-base: #03040a;
+            --bg-panel: #080b14;
+            --bg-panel2: #060810;
+            --text-main: #e2e8f0;
             --text-muted: #475569;
+            --text-dim: #94a3b8;
             --accent: #2563eb;
-            --accent-glow: rgba(37, 99, 235, 0.2);
+            --accent-bright: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
             --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.15);
+            --danger-bright: #f87171;
+            --danger-dim: rgba(239, 68, 68, 0.1);
             --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.15);
+            --success-dim: rgba(16, 185, 129, 0.1);
             --warn: #f59e0b;
+            --warn-dim: rgba(245, 158, 11, 0.1);
+            --purple: #a855f7;
             --border: #1e293b;
+            --border-bright: #334155;
+            --gold: #d4af37; /* Subtle Emirates nod */
         }
-        body { background-color: var(--bg-base); color: var(--text-main); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; margin: 0; padding: 16px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-shrink: 0; }
-        .title-block h1 { margin: 0; font-size: 1.25rem; letter-spacing: 3px; font-weight: 900; background: linear-gradient(90deg, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .title-block span { color: var(--accent); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 4px; font-weight: 700; display: block; margin-top: 2px; }
+        body { 
+            background: var(--bg-base); 
+            background-image: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.03) 0%, transparent 70%);
+            color: var(--text-main); 
+            font-family: ui-monospace, 'Cascadia Code', SFMono-Regular, Menlo, monospace; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            padding: 16px; 
+            gap: 12px; 
+        }
+
+        /* ── HEADER ── */
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding-bottom: 12px; 
+            border-bottom: 1px solid var(--border-bright); 
+            flex-shrink: 0; 
+        }
         
-        .sys-status-bar { display: flex; gap: 20px; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; }
-        .stat-node { display: flex; align-items: center; gap: 6px; }
-        .pulse { width: 6px; height: 6px; background-color: var(--success); border-radius: 50%; animation: blink 1.2s infinite; box-shadow: 0 0 8px var(--success); }
-        .pulse.alert { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .brand { display: flex; align-items: center; gap: 16px; }
         
-        .dashboard { display: grid; grid-template-columns: 1.14fr 1.72fr 1.14fr; gap: 16px; flex: 1; min-height: 0; }
-        .panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; min-height: 0; position: relative; }
-        .panel h2 { margin: 0 0 14px 0; font-size: 0.72rem; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid var(--border); padding-bottom: 8px; letter-spacing: 2px; font-weight: 800; display: flex; justify-content: space-between; }
+        .brand-logo { 
+            width: 42px; 
+            height: 42px; 
+            border: 1px solid var(--accent); 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 0 15px var(--accent-glow); 
+            position: relative; 
+            overflow: hidden; 
+            background: rgba(37, 99, 235, 0.05);
+        }
         
-        .log-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 6px; padding-right: 4px; }
-        .log-container::-webkit-scrollbar, .scroll-wrapper::-webkit-scrollbar { width: 3px; }
-        .log-container::-webkit-scrollbar-thumb, .scroll-wrapper::-webkit-scrollbar-thumb { background: var(--border); }
+        .brand-logo svg { width: 24px; height: 24px; stroke: var(--accent-bright); }
         
-        .log-entry { padding: 6px 8px; background: rgba(0,0,0,0.2); border-left: 2px solid var(--success); font-size: 0.72rem; line-height: 1.4; animation: slideIn 0.15s ease-out; word-break: break-all; }
-        .log-entry.warn { border-left-color: var(--warn); color: var(--warn); }
-        .log-entry.error { border-left-color: var(--danger); color: var(--danger); background: var(--danger-glow); }
-        .log-entry.sec { border-left-color: #a855f7; color: #c084fc; }
+        .brand-logo::after { 
+            content: ''; 
+            position: absolute; 
+            top: 0; left: -100%; 
+            width: 50%; height: 100%; 
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); 
+            animation: shimmer 4s infinite; 
+        }
         
-        .matrix-display { flex: 1; display: flex; flex-direction: column; gap: 20px; min-height: 0; overflow-y: auto; }
-        .task-node { background: rgba(255,255,255,0.01); border: 1px solid rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 4px; }
-        .task-meta { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px; font-weight: bold; }
-        .bar-container { height: 4px; background: #0f172a; border-radius: 2px; overflow: hidden; }
-        .bar-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bar-progress.warning { background: linear-gradient(90deg, var(--warn), var(--danger)) !important; }
+        @keyframes shimmer { to { left: 200%; } }
         
-        .canvas-wrapper { height: 110px; margin-top: 10px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: #020617; position: relative; }
+        .brand-text h1 { 
+            font-size: 1.1rem; 
+            font-weight: 900; 
+            letter-spacing: 4px; 
+            color: #fff; 
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
         
-        .scroll-wrapper { flex: 1; overflow-y: auto; }
-        .llm-box { background: #020203; border: 1px solid var(--border); padding: 14px; border-radius: 4px; font-size: 0.75rem; line-height: 1.6; min-height: 220px; position: relative; color: #38bdf8; white-space: pre-line; word-break: break-word; }
-        .llm-box.intercepted { border-color: var(--danger); color: #f87171; box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.05); }
-        .llm-box::before { content: 'Agentic Node Terminal'; position: absolute; top: -9px; left: 10px; background: var(--bg-panel); padding: 0 6px; font-size: 0.62rem; color: var(--accent); letter-spacing: 1px; font-weight: bold; }
-        .llm-box.intercepted::before { color: var(--danger); content: 'Security Perimeter Shield'; }
+        .brand-text p { 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            margin-top: 2px; 
+        }
         
-        .cursor { display: inline-block; width: 5px; height: 11px; background: var(--accent); animation: flash 0.8s infinite; vertical-align: middle; margin-left: 2px; }
-        .llm-box.intercepted .cursor { background: var(--danger); }
-        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .header-stats { display: flex; gap: 28px; align-items: center; }
+        .hstat { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+        .hstat-label { font-size: 0.55rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+        .hstat-val { font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
         
-        .controls { margin-top: 14px; display: flex; gap: 10px; flex-shrink: 0; }
-        button { background: #0f172a; color: var(--text-main); border: 1px solid var(--border); padding: 10px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.72rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; transition: all 0.15s ease; flex: 1; }
-        button:hover { border-color: #475569; background: #1e293b; }
-        button.danger-btn { border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
-        button.danger-btn:hover { background: var(--danger-glow); border-color: var(--danger); }
+        .sys-indicator { 
+            display: flex; align-items: center; gap: 10px; 
+            padding: 8px 14px; 
+            border: 1px solid var(--border-bright); 
+            border-radius: 4px; 
+            background: rgba(8, 11, 20, 0.8); 
+            backdrop-filter: blur(4px);
+        }
         
-        @keyframes slideIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse-dot { 
+            width: 8px; height: 8px; 
+            border-radius: 50%; 
+            background: var(--success); 
+            box-shadow: 0 0 10px var(--success); 
+            animation: pulse 2s infinite; 
+        }
+        
+        .pulse-dot.danger { background: var(--danger); box-shadow: 0 0 12px var(--danger); animation: fastpulse 0.6s infinite; }
+        
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
+        @keyframes fastpulse { 0%,100%{opacity:1;transform:scale(1.1)} 50%{opacity:0.4;transform:scale(0.9)} }
+        
+        #sys-status-text { font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; color: var(--success); }
+        #sys-status-text.danger { color: var(--danger-bright); text-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+
+        /* ── LAYOUT ── */
+        .dashboard { 
+            display: grid; 
+            grid-template-columns: 300px 1fr 340px; 
+            gap: 12px; 
+            flex: 1; 
+            min-height: 0; 
+        }
+        
+        .panel { 
+            background: rgba(8, 11, 20, 0.6); 
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-bright); 
+            border-radius: 6px; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 0; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .panel::before { 
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; 
+            background: linear-gradient(90deg, transparent, var(--accent), transparent); 
+            opacity: 0.5; 
+        }
+        
+        .panel.alert-mode::before {
+            background: linear-gradient(90deg, transparent, var(--danger), transparent); 
+            opacity: 0.8;
+            animation: scanline 2s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .panel-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 16px; 
+            border-bottom: 1px solid var(--border); 
+            flex-shrink: 0; 
+            background: rgba(0,0,0,0.2);
+        }
+        
+        .panel-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: var(--text-dim); }
+        
+        .panel-badge { font-size: 0.6rem; font-weight: 700; padding: 3px 8px; border-radius: 3px; letter-spacing: 1px; }
+        .badge-accent { background: var(--accent-glow); color: var(--accent-bright); border: 1px solid rgba(59,130,246,0.3); }
+        .badge-success { background: var(--success-dim); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+        .badge-danger { background: var(--danger-dim); color: var(--danger-bright); border: 1px solid rgba(239,68,68,0.4); box-shadow: 0 0 10px rgba(239,68,68,0.2); }
+        .badge-warn { background: var(--warn-dim); color: var(--warn); border: 1px solid rgba(245,158,11,0.3); }
+
+        /* ── LOG PANEL ── */
+        .log-scroll { 
+            flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; 
+        }
+        .log-scroll::-webkit-scrollbar, .centre-body::-webkit-scrollbar, .terminal-body::-webkit-scrollbar { width: 4px; }
+        .log-scroll::-webkit-scrollbar-thumb, .centre-body::-webkit-scrollbar-thumb, .terminal-body::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+        
+        .log-entry { 
+            padding: 6px 10px; font-size: 0.68rem; line-height: 1.5; 
+            border-left: 2px solid var(--success); 
+            background: linear-gradient(90deg, rgba(16,185,129,0.05), transparent); 
+            animation: slideInLeft 0.2s ease-out; 
+            word-break: break-word; 
+        }
+        
+        .log-entry .ts { color: var(--text-muted); margin-right: 8px; font-size: 0.6rem; }
+        
+        .log-entry.warn { border-color: var(--warn); background: linear-gradient(90deg, var(--warn-dim), transparent); color: #fcd34d; }
+        .log-entry.error { border-color: var(--danger); background: linear-gradient(90deg, var(--danger-dim), transparent); color: var(--danger-bright); }
+        .log-entry.sec { border-color: var(--purple); background: linear-gradient(90deg, rgba(168,85,247,0.08), transparent); color: #d8b4fe; }
+        .log-entry.info { border-color: var(--accent-bright); background: linear-gradient(90deg, var(--accent-glow), transparent); color: #93c5fd; }
+        
+        @keyframes slideInLeft { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+        
+        .log-stats { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; 
+            flex-shrink: 0; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2);
+        }
+        
+        .mini-stat { background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 4px; padding: 8px 12px; }
+        .mini-stat-label { font-size: 0.55rem; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+        .mini-stat-val { font-size: 0.9rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+        /* ── CENTRE PANEL ── */
+        .centre-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; min-height: 0; }
+        
+        /* Flight info strip */
+        .flight-strip { 
+            background: linear-gradient(135deg, var(--bg-panel2), #0a0f1a); 
+            border: 1px solid var(--border-bright); 
+            border-radius: 6px; 
+            padding: 14px 18px; 
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; 
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flight-strip::after {
+            content: 'DXB';
+            position: absolute;
+            right: -10px;
+            bottom: -20px;
+            font-size: 5rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.02);
+            pointer-events: none;
+        }
+        
+        .flight-id { font-size: 1.5rem; font-weight: 900; letter-spacing: 4px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .flight-id span { font-size: 0.7rem; color: var(--gold); border: 1px solid rgba(212, 175, 55, 0.3); padding: 2px 6px; border-radius: 3px; letter-spacing: 2px; }
+        
+        .flight-meta { display: flex; gap: 24px; z-index: 1; }
+        .fmeta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .fmeta-label { font-size: 0.55rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+        .fmeta-val { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        
+        /* Task nodes */
+        .tasks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex-shrink: 0; }
+        
+        .task-card { 
+            background: var(--bg-panel2); 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            padding: 12px 14px; 
+            transition: all 0.3s ease; 
+            position: relative;
+        }
+        
+        .task-card.critical { 
+            border-color: rgba(239,68,68,0.5); 
+            background: linear-gradient(to bottom, rgba(239,68,68,0.05), transparent);
+            box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.05);
+        }
+        
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .task-name { font-size: 0.68rem; font-weight: 800; color: var(--text-main); letter-spacing: 1.5px; text-transform: uppercase; }
+        .task-pct { font-size: 0.9rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+        
+        .task-bar { height: 4px; background: #0f172a; border-radius: 2px; overflow: hidden; margin-bottom: 8px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+        .task-bar-fill { 
+            height: 100%; border-radius: 2px; 
+            background: linear-gradient(90deg, var(--accent), var(--success)); 
+            transition: width 0.8s cubic-bezier(0.4,0,0.2,1); 
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .task-bar-fill::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            animation: glare 2s infinite;
+        }
+        @keyframes glare { 100% { transform: translateX(100%); } }
+        
+        .task-bar-fill.stalled { background: linear-gradient(90deg, var(--warn), var(--danger)); animation: pulseBar 1.5s infinite; }
+        @keyframes pulseBar { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        
+        .task-meta-row { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); font-weight: 600; }
+        
+        /* Canvas chart */
+        .chart-container { 
+            background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 6px; 
+            padding: 12px 16px; flex-shrink: 0; position: relative;
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .chart-title { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; }
+        .chart-legend { display: flex; gap: 16px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.62rem; color: var(--text-dim); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        canvas { display: block; width: 100%; height: 90px; }
+
+        /* Controls */
+        .controls-row { display: flex; gap: 12px; flex-shrink: 0; margin-top: auto; }
+        .btn { 
+            flex: 1; padding: 12px; 
+            background: var(--bg-panel2); 
+            border: 1px solid var(--border-bright); 
+            border-radius: 4px; 
+            color: var(--text-main); 
+            font-family: inherit; font-size: 0.68rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; 
+            cursor: pointer; transition: all 0.2s; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .btn:hover { border-color: var(--accent); color: #fff; background: rgba(37, 99, 235, 0.15); box-shadow: 0 0 15px rgba(37, 99, 235, 0.2); transform: translateY(-1px); }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn.danger { color: var(--danger-bright); border-color: rgba(239,68,68,0.3); }
+        .btn.danger:hover { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); color: #fff; }
+        
+        .btn.active-danger { 
+            color: #fff; background: var(--danger); border-color: var(--danger); 
+            animation: pulseShadow 1.5s infinite; pointer-events: none;
+        }
+        @keyframes pulseShadow { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.6)} 70%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
+        /* ── RIGHT PANEL ── */
+        .terminal-body { flex: 1; overflow-y: auto; padding: 16px; min-height: 0; background: #020205; font-size: 0.75rem; }
+        .terminal-text { line-height: 1.8; color: #38bdf8; white-space: pre-wrap; word-break: break-word; }
+        .terminal-text.intercepted { color: var(--danger-bright); text-shadow: 0 0 5px rgba(239, 68, 68, 0.3); }
+        .terminal-text.mitigating { color: var(--warn); }
+        
+        .terminal-cursor { 
+            display: inline-block; width: 8px; height: 14px; 
+            background: var(--accent-bright); animation: blink 1s step-end infinite; 
+            vertical-align: middle; margin-left: 2px; 
+        }
+        .terminal-cursor.danger { background: var(--danger-bright); }
+        .terminal-cursor.warn { background: var(--warn); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .terminal-actions { 
+            padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; 
+            display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.3);
+        }
+        
+        .action-item { 
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; 
+            background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 4px; 
+            font-size: 0.65rem; line-height: 1.5; color: var(--text-main);
+            opacity: 0; transform: translateX(10px); transition: opacity 0.4s, transform 0.4s; 
+        }
+        .action-item.visible { opacity: 1; transform: translateX(0); border-left: 2px solid var(--success); }
+        .action-item.visible.danger { border-left-color: var(--danger); }
+        .action-item.visible.warn { border-left-color: var(--warn); }
+        
+        .action-icon { font-size: 0.8rem; margin-top: -1px; }
+
+        /* ── ALERT TICKER ── */
+        .ticker-wrapper { display: flex; gap: 12px; flex-shrink: 0; }
+        
+        .ticker-bar { 
+            background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 4px; 
+            overflow: hidden; flex: 1; height: 32px; display: flex; align-items: center; 
+        }
+        
+        .ticker-label { 
+            font-size: 0.6rem; font-weight: 800; color: var(--accent-bright); 
+            letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; 
+            padding: 0 16px; border-right: 1px solid var(--border-bright); background: rgba(37, 99, 235, 0.05);
+            height: 100%; display: flex; align-items: center;
+        }
+        
+        .ticker-track { overflow: hidden; flex: 1; padding-left: 16px; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }
+        .ticker-inner { 
+            display: flex; gap: 80px; white-space: nowrap; 
+            animation: tickerScroll 40s linear infinite; 
+            font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; font-weight: 600;
+        }
+        @keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        
+        .info-block { 
+            background: var(--bg-panel2); border: 1px solid var(--border); border-radius: 4px; 
+            padding: 0 16px; display: flex; align-items: center; gap: 10px; 
+            font-size: 0.65rem; color: var(--text-dim); font-weight: 700; height: 32px;
+        }
+        .info-block.atc { border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); }
+        .atc-val { font-size: 0.8rem; font-weight: 900; color: var(--warn); font-variant-numeric: tabular-nums; }
+        .time-val { color: var(--text-main); font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="title-block">
-            <h1>PROJECT SENTINEL</h1>
-            <span>Event-Driven Turnaround Security Mesh</span>
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>PROJECT SENTINEL</h1>
+                <p>A-CDM Turnaround Security Mesh · DXB Concourse B</p>
+            </div>
         </div>
-        <div class="sys-status-bar">
-            <div class="stat-node"><span class="pulse" id="sysPulse"></span><span id="sysStatusText" style="color:var(--success)">NOMINAL</span></div>
-            <div class="stat-node" style="color:var(--text-muted)">LATENCY: <span id="networkLatency" style="color:var(--accent)">2ms</span></div>
-            <div class="stat-node" style="color:var(--text-muted)">UPLINK: <span style="color:#a855f7">PQ-LATTICE</span></div>
+        
+        <div class="header-stats">
+            <div class="hstat">
+                <span class="hstat-label">Ingest Rate</span>
+                <span class="hstat-val" id="pps-val" style="color:var(--success)">8,421 /s</span>
+            </div>
+            <div class="hstat">
+                <span class="hstat-label">Gateway Ping</span>
+                <span class="hstat-val" id="latency-val" style="color:var(--accent-bright)">4ms</span>
+            </div>
+            <div class="hstat">
+                <span class="hstat-label">Encryption</span>
+                <span class="hstat-val" style="color:var(--purple)">CRYSTALS-Kyber</span>
+            </div>
+            <div class="sys-indicator" id="sys-container">
+                <div class="pulse-dot" id="sys-dot"></div>
+                <span id="sys-status-text">SECURE LATTICE</span>
+            </div>
         </div>
     </header>
 
+    <div class="ticker-wrapper">
+        <div class="ticker-bar">
+            <div class="ticker-label">Data Mesh</div>
+            <div class="ticker-track">
+                <div class="ticker-inner" id="ticker-inner">
+                    <span>FLIGHT: EK412 · DXB → LHR · A/C: A380-800 · GATE: B12 · TOBT: 23:35</span>
+                    <span>KAFKA CLUSTER: 3 Brokers Online · Partition Health 100%</span>
+                    <span>ML INFERENCE: ResNet-50 Node Active · Vision Core OK</span>
+                    <span>GROUND OPS: Chocks On +4m · GPU Connected · PCA Flow Nominal</span>
+                    <span>FLIGHT: EK412 · DXB → LHR · A/C: A380-800 · GATE: B12 · TOBT: 23:35</span>
+                    <span>KAFKA CLUSTER: 3 Brokers Online · Partition Health 100%</span>
+                    <span>ML INFERENCE: ResNet-50 Node Active · Vision Core OK</span>
+                    <span>GROUND OPS: Chocks On +4m · GPU Connected · PCA Flow Nominal</span>
+                </div>
+            </div>
+        </div>
+        <div class="info-block">
+            <span>DXB LOCAL</span>
+            <span class="time-val" id="clock-dxb">--:--:--</span>
+        </div>
+        <div class="info-block atc" id="atc-block">
+            <span>TSAT WINDOW</span>
+            <span class="atc-val" id="atc-timer">41:00</span>
+        </div>
+    </div>
+
     <div class="dashboard">
-        <!-- Panel 1: Live Event Logger -->
-        <div class="panel">
-            <h2>Kafka Telemetry Stream <span style="color:var(--accent)" id="ppsCounter">0 pps</span></h2>
-            <div class="log-container" id="logStream"></div>
-        </div>
-        
-        <!-- Panel 2: Turnaround Matrix & Real-time Scope -->
-        <div class="panel">
-            <h2>Live Turnaround Matrix (Gate B12)</h2>
-            <div class="matrix-display">
-                <div class="task-node">
-                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Fueling]</span><span id="lbl-fuel">45%</span></div>
-                    <div class="bar-container"><div class="bar-progress" id="bar-fuel" style="width: 45%;"></div></div>
-                </div>
-                <div class="task-node">
-                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Catering]</span><span id="lbl-cat">10%</span></div>
-                    <div class="bar-container"><div class="bar-progress" id="bar-cat" style="width: 10%;"></div></div>
-                </div>
-                <div class="task-node">
-                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Baggage]</span><span id="lbl-bag">0%</span></div>
-                    <div class="bar-container"><div class="bar-progress" id="bar-bag" style="width: 0%;"></div></div>
-                </div>
-                
-                <div class="canvas-wrapper">
-                    <canvas id="telemetryChart"></canvas>
-                </div>
+        <div class="panel" id="panel-logs">
+            <div class="panel-header">
+                <span class="panel-title">Telemetry Ingestion</span>
+                <span class="panel-badge badge-accent" id="log-badge">LIVE STREAM</span>
             </div>
-            
-            <div class="controls">
-                <button onclick="simulateNormal()">Reset Core States</button>
-                <button class="danger-btn" onclick="triggerAnomaly()">Inject Anomaly Stream</button>
+            <div class="log-scroll" id="log-stream"></div>
+            <div class="log-stats">
+                <div class="mini-stat">
+                    <div class="mini-stat-label">Msgs (1hr)</div>
+                    <div class="mini-stat-val" id="events-hr" style="color:var(--text-main)">2.4M</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-label">Dropped</div>
+                    <div class="mini-stat-val" id="error-count" style="color:var(--success)">0</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-label">Partitions</div>
+                    <div class="mini-stat-val" style="color:var(--text-main)">12</div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-label">Offset Lag</div>
+                    <div class="mini-stat-val" id="kafka-lag" style="color:var(--success)">4 ms</div>
+                </div>
             </div>
         </div>
-        
-        <!-- Panel 3: Agentic Execution System -->
-        <div class="panel">
-            <h2>Autonomous Mitigation</h2>
-            <div class="scroll-wrapper">
-                <div class="llm-box" id="llmBox">
-                    <span id="llm-text">Awaiting uplink synchronization parameters...</span><span class="cursor"></span>
+
+        <div class="panel" id="panel-matrix">
+            <div class="panel-header">
+                <span class="panel-title">Turnaround Critical Path</span>
+                <span class="panel-badge badge-success" id="centre-badge">OPTIMIZED</span>
+            </div>
+            <div class="centre-body">
+                <div class="flight-strip">
+                    <div class="flight-id">EK 412 <span>A380</span></div>
+                    <div class="flight-meta">
+                        <div class="fmeta"><span class="fmeta-label">Stand</span><span class="fmeta-val">B12</span></div>
+                        <div class="fmeta"><span class="fmeta-label">TOBT</span><span class="fmeta-val" id="etd-val">23:35</span></div>
+                        <div class="fmeta"><span class="fmeta-label">Pax</span><span class="fmeta-val">489</span></div>
+                        <div class="fmeta"><span class="fmeta-label">Cargo</span><span class="fmeta-val">12 ULDs</span></div>
+                    </div>
+                </div>
+
+                <div class="tasks-grid">
+                    <div class="task-card" id="card-fuel">
+                        <div class="task-header">
+                            <span class="task-name">⛽ Fuel Bowser</span>
+                            <span class="task-pct" id="pct-fuel" style="color:var(--accent-bright)">0%</span>
+                        </div>
+                        <div class="task-bar"><div class="task-bar-fill" id="bar-fuel"></div></div>
+                        <div class="task-meta-row">
+                            <span id="status-fuel">Connecting...</span>
+                            <span id="eta-fuel">ETA: —</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-card" id="card-cat">
+                        <div class="task-header">
+                            <span class="task-name">🍽 High-Loader</span>
+                            <span class="task-pct" id="pct-cat" style="color:var(--accent-bright)">0%</span>
+                        </div>
+                        <div class="task-bar"><div class="task-bar-fill" id="bar-cat"></div></div>
+                        <div class="task-meta-row">
+                            <span id="status-cat">Awaiting Clearance</span>
+                            <span id="eta-cat">ETA: —</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-card" id="card-bag">
+                        <div class="task-header">
+                            <span class="task-name">🧳 ULD Loading</span>
+                            <span class="task-pct" id="pct-bag" style="color:var(--accent-bright)">0%</span>
+                        </div>
+                        <div class="task-bar"><div class="task-bar-fill" id="bar-bag"></div></div>
+                        <div class="task-meta-row">
+                            <span id="status-bag">Hold Doors Closed</span>
+                            <span id="eta-bag">ETA: —</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-card" id="card-clean">
+                        <div class="task-header">
+                            <span class="task-name">👥 Boarding</span>
+                            <span class="task-pct" id="pct-clean" style="color:var(--accent-bright)">0%</span>
+                        </div>
+                        <div class="task-bar"><div class="task-bar-fill" id="bar-clean"></div></div>
+                        <div class="task-meta-row">
+                            <span id="status-clean">Cabin Prep</span>
+                            <span id="eta-clean">ETA: —</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title">Sensory Mesh Vector Graph</span>
+                        <div class="chart-legend">
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>Nominal</div>
+                            <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Deviation</div>
+                        </div>
+                    </div>
+                    <canvas id="chart" height="90"></canvas>
+                </div>
+
+                <div class="controls-row">
+                    <button class="btn" onclick="sys.reset()">↺ Resync State</button>
+                    <button class="btn danger" id="inject-btn" onclick="sys.injectAnomaly()">⚡ Inject Payload</button>
                 </div>
             </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Agentic Command</span>
+                <span class="panel-badge badge-accent" id="ai-badge">IDLE</span>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <div class="terminal-text" id="terminal-text"></div><span class="terminal-cursor" id="term-cursor"></span>
+            </div>
+            <div class="terminal-actions" id="action-list"></div>
         </div>
     </div>
 
     <script>
-        const logStream = document.getElementById('logStream');
-        const llmText = document.getElementById('llm-text');
-        const llmBox = document.getElementById('llmBox');
-        const canvas = document.getElementById('telemetryChart');
-        const ctx = canvas.getContext('2d');
+        // ─── UTILITIES & TIMERS ──────────────────────────────────────────
+        const U = {
+            ts: () => new Date().toLocaleTimeString('en-GB', { hour12: false, fractionalSecondDigits: 3 }),
+            timeDXB: () => {
+                const d = new Date();
+                const u = d.getTime() + (d.getTimezoneOffset() * 60000);
+                return new Date(u + (3600000 * 4)).toLocaleTimeString('en-GB', { hour12: false });
+            },
+            rand: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        };
 
-        let loops, loggerLoop, metricPPS;
-        let isAnomaly = false;
-        
-        // Tracking State Metrics
-        let fuel = 45, cat = 10, bag = 0;
-        let chartData = Array(30).fill(12);
+        // Clocks Update
+        setInterval(() => {
+            document.getElementById('clock-dxb').textContent = U.timeDXB();
+        }, 1000);
 
-        function getTimestamp() { return new Date().toLocaleTimeString('en-US', { hour12: false }); }
+        // ─── SYSTEM STATE MANAGER ──────────────────────────────────────
+        class TelemetrySystem {
+            constructor() {
+                this.state = 'NOMINAL'; // NOMINAL, INTERCEPTED, MITIGATING
+                this.errors = 0;
+                this.atcSeconds = 41 * 60;
+                this.metrics = { fuel: 45, cat: 15, bag: 0, board: 0 };
+                this.chartData = Array(60).fill(null).map(() => U.rand(20, 30));
+                this.timers = [];
+                this.typewriterCancel = null;
+                
+                this.dom = {
+                    logStream: document.getElementById('log-stream'),
+                    chart: document.getElementById('chart'),
+                    ctx: document.getElementById('chart').getContext('2d')
+                };
 
-        function appendTerminalLog(msg, type = 'nominal') {
-            const entry = document.createElement('div');
-            entry.className = log-entry ${type};
-            entry.innerText = [${getTimestamp()}] ${msg};
-            logStream.appendChild(entry);
-            if (logStream.children.length > 35) logStream.removeChild(logStream.firstChild);
-        }
-        
-        function typeTerminalOutput(text) {
-            llmText.innerText = ""; let i = 0;
-            function run() {
-                if (i < text.length) {
-                    llmText.innerHTML += text.charAt(i) === '\n' ? '' : text.charAt(i);
-                    i++;
-                    setTimeout(run, 8);
+                this.logPool = [
+                    ['HEARTBEAT: Gate B12 LIDAR ground mesh active', 'nominal'],
+                    ['METRIC: Baggage reconciliation system check OK', 'nominal'],
+                    ['DATA: Fuel pump pressure 3.2 bar · within constraints', 'nominal'],
+                    ['UPLINK: GPU Node-4 inference cycle completed', 'nominal'],
+                    ['SEC: Zero-knowledge proof verified for catering API', 'sec'],
+                    ['DATA: Chiller airflow nominal · cargo hold fwd', 'info'],
+                    ['HEARTBEAT: Edge gateway PQ-LATTICE key sync OK', 'nominal']
+                ];
+                
+                this.anomalyLogs = [
+                    ['WARN: Catering node B12 telemetry desync detected', 'warn'],
+                    ['CRITICAL: Malformed packet in high-loader state frame', 'error'],
+                    ['SECURITY: Lattice-signature mismatch · Origin: Unknown', 'sec'],
+                    ['WARN: Ingestion queue backpressure spiking', 'warn'],
+                    ['INFO: Executing container sandbox for payload isolation', 'info']
+                ];
+
+                this.init();
+            }
+
+            init() {
+                this.reset();
+                setInterval(() => this.updateATC(), 1000);
+                setInterval(() => this.updateHeaderMetrics(), 1000);
+                window.addEventListener('resize', () => this.drawChart());
+            }
+
+            reset() {
+                this.state = 'NOMINAL';
+                this.metrics = { fuel: 45, cat: 15, bag: 0, board: 0 };
+                this.errors = 0;
+                this.clearTimers();
+                
+                // UI Resets
+                document.getElementById('sys-dot').className = 'pulse-dot';
+                document.getElementById('sys-status-text').className = '';
+                document.getElementById('sys-status-text').textContent = 'SECURE LATTICE';
+                document.getElementById('sys-container').style.borderColor = 'var(--border-bright)';
+                
+                document.getElementById('inject-btn').className = 'btn danger';
+                document.getElementById('centre-badge').className = 'panel-badge badge-success';
+                document.getElementById('centre-badge').textContent = 'OPTIMIZED';
+                
+                document.getElementById('ai-badge').className = 'panel-badge badge-accent';
+                document.getElementById('ai-badge').textContent = 'IDLE';
+                
+                document.getElementById('panel-matrix').classList.remove('alert-mode');
+                document.getElementById('card-cat').classList.remove('critical');
+                document.getElementById('error-count').textContent = '0';
+                document.getElementById('error-count').style.color = 'var(--success)';
+                document.getElementById('action-list').innerHTML = '';
+                
+                this.updateDOM();
+                this.appendLog('SYSTEM: Operator override. State machine resynchronized.', 'info');
+                this.typeWrite('Agent core ready.\nMonitoring datalink for structural deviations...', 'nominal');
+                
+                // Start Loops
+                this.timers.push(setInterval(() => this.tickState(), 1200));
+                this.timers.push(setInterval(() => this.tickChart(), 1000));
+                this.timers.push(setInterval(() => {
+                    if (this.state === 'NOMINAL') this.fireRandomLog();
+                }, 2000));
+            }
+
+            clearTimers() {
+                this.timers.forEach(t => clearInterval(t));
+                this.timers = [];
+            }
+
+            updateATC() {
+                if (this.atcSeconds <= 0) return;
+                this.atcSeconds--;
+                const m = Math.floor(this.atcSeconds / 60).toString().padStart(2, '0');
+                const s = (this.atcSeconds % 60).toString().padStart(2, '0');
+                const el = document.getElementById('atc-timer');
+                el.textContent = `${m}:${s}`;
+                
+                if (this.atcSeconds < 600) {
+                    el.style.color = 'var(--danger-bright)';
+                    document.getElementById('atc-block').style.borderColor = 'rgba(239, 68, 68, 0.4)';
                 }
             }
-            run();
-        }
-        
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        function renderChartFrame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#111827'; 
-            ctx.lineWidth = 1;
-            for(let i = 0; i < canvas.height; i += 25) {
-                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i);
+
+            updateHeaderMetrics() {
+                const pps = document.getElementById('pps-val');
+                const lat = document.getElementById('latency-val');
+                const lag = document.getElementById('kafka-lag');
+
+                if (this.state !== 'NOMINAL') {
+                    pps.textContent = `${U.rand(24000, 36000)} /s`;
+                    pps.style.color = 'var(--danger-bright)';
+                    lat.textContent = `${U.rand(80, 150)}ms`;
+                    lat.style.color = 'var(--warn)';
+                    lag.textContent = `${U.rand(400, 900)} ms`;
+                    lag.style.color = 'var(--danger-bright)';
+                } else {
+                    pps.textContent = `${U.rand(7900, 8500)} /s`;
+                    pps.style.color = 'var(--success)';
+                    lat.textContent = `${U.rand(2, 6)}ms`;
+                    lat.style.color = 'var(--accent-bright)';
+                    lag.textContent = `${U.rand(2, 8)} ms`;
+                    lag.style.color = 'var(--success)';
+                }
+            }
+
+            appendLog(msg, type) {
+                const el = document.createElement('div');
+                el.className = `log-entry ${type}`;
+                el.innerHTML = `<span class="ts">[${U.ts()}]</span>${msg}`;
+                this.dom.logStream.appendChild(el);
+                this.dom.logStream.scrollTop = this.dom.logStream.scrollHeight;
+                
+                if (this.dom.logStream.children.length > 60) {
+                    this.dom.logStream.removeChild(this.dom.logStream.firstChild);
+                }
+                
+                if (type === 'error' || type === 'sec') {
+                    this.errors++;
+                    const errEl = document.getElementById('error-count');
+                    errEl.textContent = this.errors;
+                    errEl.style.color = 'var(--danger-bright)';
+                }
+            }
+
+            fireRandomLog() {
+                const [msg, type] = this.logPool[U.rand(0, this.logPool.length - 1)];
+                this.appendLog(msg, type);
+            }
+
+            // Task State Machine
+            tickState() {
+                if (this.state === 'INTERCEPTED') return; // Freeze states
+                
+                let { fuel, cat, bag, board } = this.metrics;
+                
+                // Progression Logic
+                if (fuel < 100) fuel = Math.min(100, fuel + (Math.random() > 0.2 ? 1 : 0));
+                
+                // Catering recovers slowly if mitigating, else normal
+                if (cat < 100) {
+                    let prob = this.state === 'MITIGATING' ? 0.8 : 0.4;
+                    cat = Math.min(100, cat + (Math.random() > prob ? 1 : 0));
+                }
+
+                // Baggage waits for catering to hit 30%
+                if (bag < 100 && cat > 30) bag = Math.min(100, bag + (Math.random() > 0.3 ? 1 : 0));
+                
+                // Boarding waits for Fuel complete and Catering > 80%
+                if (board < 100 && fuel === 100 && cat > 80) board = Math.min(100, board + (Math.random() > 0.4 ? 1 : 0));
+
+                this.metrics = { fuel, cat, bag, board };
+                this.updateDOM();
+            }
+
+            setBar(id, pct, statusStr, stalled) {
+                const bar = document.getElementById(`bar-${id}`);
+                const lbl = document.getElementById(`pct-${id}`);
+                const status = document.getElementById(`status-${id}`);
+                const eta = document.getElementById(`eta-${id}`);
+                
+                bar.style.width = `${pct}%`;
+                
+                if (stalled) {
+                    bar.className = 'task-bar-fill stalled';
+                    lbl.style.color = 'var(--danger-bright)';
+                    lbl.textContent = 'ERR';
+                } else {
+                    bar.className = 'task-bar-fill';
+                    lbl.style.color = pct === 100 ? 'var(--success)' : 'var(--accent-bright)';
+                    lbl.textContent = `${pct}%`;
+                }
+
+                status.textContent = statusStr;
+                
+                if (pct === 100) {
+                    eta.textContent = 'Done';
+                    eta.style.color = 'var(--success)';
+                } else if (pct === 0 || stalled) {
+                    eta.textContent = 'ETA: —';
+                    eta.style.color = 'var(--text-muted)';
+                } else {
+                    eta.textContent = `ETA: ${Math.ceil((100 - pct) / 2)}m`;
+                    eta.style.color = 'var(--text-muted)';
+                }
+            }
+
+            updateDOM() {
+                const m = this.metrics;
+                const isStalled = this.state === 'INTERCEPTED';
+                
+                this.setBar('fuel', m.fuel, m.fuel === 100 ? 'Hose Disconnected' : 'Pumping JET-A1', false);
+                this.setBar('cat', m.cat, isStalled ? 'Comms Failure' : (m.cat === 100 ? 'Doors Closed' : 'Loading Galley'), isStalled);
+                this.setBar('bag', m.bag, m.bag === 100 ? 'Hold Secured' : (m.cat <= 30 ? 'Awaiting Fwd Clearance' : 'Loading ULDs'), false);
+                this.setBar('clean', m.board, m.board === 100 ? 'Doors Armed' : (m.fuel < 100 ? 'Hold: Fueling Active' : 'Pax Embarking'), false);
+            }
+
+            // Charting
+            drawChart() {
+                const w = this.dom.chart.parentElement.clientWidth - 32;
+                const h = 90;
+                this.dom.chart.width = w;
+                this.dom.chart.height = h;
+                const ctx = this.dom.ctx;
+                
+                ctx.clearRect(0, 0, w, h);
+                
+                // Grid
+                ctx.strokeStyle = 'rgba(30,41,59,0.5)';
+                ctx.lineWidth = 1;
+                for (let y = 0; y < h; y += 22.5) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                }
+
+                // Fill
+                const isAlert = this.state !== 'NOMINAL';
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, isAlert ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.2)');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                const step = w / (this.chartData.length - 1);
+                const scaleY = (v) => h - (v / 100) * h;
+
+                ctx.beginPath();
+                ctx.moveTo(0, h);
+                this.chartData.forEach((v, i) => ctx.lineTo(i * step, scaleY(v)));
+                ctx.lineTo(w, h);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Line (smoothed slightly)
+                ctx.beginPath();
+                ctx.strokeStyle = isAlert ? 'var(--danger-bright)' : 'var(--success)';
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                
+                this.chartData.forEach((v, i) => {
+                    if (i === 0) ctx.moveTo(0, scaleY(v));
+                    else ctx.lineTo(i * step, scaleY(v));
+                });
                 ctx.stroke();
             }
-            
-            ctx.beginPath();
-            ctx.strokeStyle = isAnomaly ? '#ef4444' : '#10b981';
-            ctx.lineWidth = 1.5;
-            let step = canvas.width / (chartData.length - 1);
-            for(let i = 0; i < chartData.length; i++) {
-                let x = i * step;
-                let y = canvas.height - (chartData[i] * (canvas.height / 100));
-                if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+
+            tickChart() {
+                let next;
+                if (this.state === 'INTERCEPTED') next = U.rand(70, 95);
+                else if (this.state === 'MITIGATING') next = U.rand(40, 60);
+                else next = U.rand(20, 35);
+                
+                this.chartData.push(next);
+                this.chartData.shift();
+                this.drawChart();
             }
-            ctx.stroke();
-            
-            chartData.push(isAnomaly ? Math.floor(Math.random()*40)+55 : Math.floor(Math.random()*12)+20);
-            chartData.shift();
-            requestAnimationFrame(renderChartFrame);
-        }
-            requestAnimationFrame(renderChartFrame);
-        
-        function runSystemTelemetry() {
-            clearInterval(loops);
-            loops = setInterval(() => {
-                if (!isAnomaly) {
-                    if (fuel < 100) fuel += Math.random() > 0.4 ? 1 : 0;
-                    if (cat < 100) cat += Math.random() > 0.5 ? 1 : 0;
-                    if (bag < 100 && cat > 25) bag += Math.random() > 0.4 ? 1 : 0;
-                    document.getElementById('bar-fuel').style.width = ${fuel}%;
-                    document.getElementById('lbl-fuel').innerText = ${fuel}%;
-                    document.getElementById('bar-cat').style.width = ${cat}%;document.getElementById('lbl-cat').innerText = ${cat}%;
-                    document.getElementById('bar-bag').style.width = ${bag}%;document.getElementById('lbl-bag').innerText = ${bag}%;
+
+            // Terminal
+            typeWrite(text, type = 'nominal') {
+                if (this.typewriterCancel) clearTimeout(this.typewriterCancel);
+                const el = document.getElementById('terminal-text');
+                const cursor = document.getElementById('term-cursor');
+                
+                el.className = `terminal-text ${type === 'danger' ? 'intercepted' : type === 'warn' ? 'mitigating' : ''}`;
+                cursor.className = `terminal-cursor ${type}`;
+                el.textContent = '';
+                
+                let i = 0;
+                const step = () => {
+                    if (i < text.length) {
+                        el.textContent += text[i++];
+                        this.typewriterCancel = setTimeout(step, 15);
+                    }
                 }
-            }, 1000);
+                step();
+            }
+
+            showActions(items, type) {
+                const list = document.getElementById('action-list');
+                list.innerHTML = '';
+                items.forEach((text, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'action-item';
+                    const icon = type === 'danger' ? '🛡️' : type === 'warn' ? '⚙️' : '✓';
+                    el.innerHTML = `<span class="action-icon">${icon}</span> <span>${text}</span>`;
+                    list.appendChild(el);
+                    setTimeout(() => el.classList.add('visible', type), idx * 400 + 500);
+                });
+            }
+
+            // Payload Injection Sequence
+            injectAnomaly() {
+                if (this.state !== 'NOMINAL') return;
+                this.state = 'INTERCEPTED';
+                
+                // UI Alert Modes
+                document.getElementById('sys-dot').className = 'pulse-dot danger';
+                document.getElementById('sys-status-text').className = 'danger';
+                document.getElementById('sys-status-text').textContent = 'BREACH DETECTED';
+                document.getElementById('sys-container').style.borderColor = 'var(--danger-bright)';
+                
+                document.getElementById('inject-btn').className = 'btn active-danger';
+                document.getElementById('centre-badge').className = 'panel-badge badge-danger';
+                document.getElementById('centre-badge').textContent = 'LATTICE FAULT';
+                
+                document.getElementById('panel-matrix').classList.add('alert-mode');
+                document.getElementById('card-cat').classList.add('critical');
+                
+                this.updateDOM(); // Triggers stalled UI
+                
+                // Rapid Error Logging
+                let al = 0;
+                const aTimer = setInterval(() => {
+                    if (this.state !== 'INTERCEPTED') return clearInterval(aTimer);
+                    const [msg, type] = this.anomalyLogs[al % this.anomalyLogs.length];
+                    this.appendLog(msg, type);
+                    al++;
+                }, 400);
+                this.timers.push(aTimer);
+
+                // Simulate Agentic Response Stages
+                this.typeWrite('CRITICAL ALERT: Malformed payload injected via Catering API Gateway.\nLattice-signature mismatch detected.', 'danger');
+                document.getElementById('ai-badge').className = 'panel-badge badge-danger';
+                document.getElementById('ai-badge').textContent = 'ANALYZING';
+
+                setTimeout(() => {
+                    this.showActions([
+                        'Isolating corrupted data frames at Edge Gateway',
+                        'Deploying zero-trust perimeter around ML vision cores',
+                        'Terminating compromised thread via FastAPI router'
+                    ], 'danger');
+                }, 1000);
+
+                // Move to mitigation
+                setTimeout(() => this.startMitigation(), 5000);
+            }
+
+            startMitigation() {
+                if (this.state !== 'INTERCEPTED') return;
+                this.state = 'MITIGATING';
+                
+                document.getElementById('sys-status-text').textContent = 'RECOVERING';
+                document.getElementById('sys-status-text').style.color = 'var(--warn)';
+                document.getElementById('sys-dot').style.background = 'var(--warn)';
+                document.getElementById('sys-container').style.borderColor = 'var(--warn)';
+                
+                document.getElementById('centre-badge').className = 'panel-badge badge-warn';
+                document.getElementById('centre-badge').textContent = 'REROUTING';
+                
+                document.getElementById('ai-badge').className = 'panel-badge badge-warn';
+                document.getElementById('ai-badge').textContent = 'EXECUTING';
+
+                document.getElementById('card-cat').classList.remove('critical');
+                this.appendLog('INFO: Threat isolated. Initiating operational recovery.', 'info');
+
+                this.typeWrite('THREAT CONTAINED.\n\nCatering flow desynchronized. Recalculating turnaround critical path to protect TSAT window...', 'warn');
+                
+                setTimeout(() => {
+                    this.showActions([
+                        'Dispatching secondary catering unit from Concourse A (ETA 4m)',
+                        'Re-sequencing ULD baggage loaders to Port Side Aft',
+                        'Broadcasting adjusted boarding constraints to Gate B12'
+                    ], 'warn');
+                }, 1500);
+
+                // Eventually return to nominal implicitly via reset or let it run
+                setTimeout(() => {
+                    if (this.state === 'MITIGATING') {
+                        document.getElementById('sys-status-text').textContent = 'SECURE LATTICE';
+                        document.getElementById('sys-status-text').style.color = 'var(--success)';
+                        document.getElementById('sys-dot').style.background = 'var(--success)';
+                        document.getElementById('sys-container').style.borderColor = 'var(--border-bright)';
+                        document.getElementById('centre-badge').className = 'panel-badge badge-success';
+                        document.getElementById('centre-badge').textContent = 'OPTIMIZED';
+                        this.state = 'NOMINAL';
+                        this.appendLog('SYSTEM: Turnaround path stabilized. Resuming standard telemetry.', 'nominal');
+                    }
+                }, 12000);
+            }
         }
-        function runTelemetryNoise() {
-            clearInterval(loggerLoop);
-            clearInterval(metricPPS);
-            const packets = ["HEARTBEAT: GROUND SENSORS UPLINK INTEGRITY nominal","METRIC: PASSENGER ON-BOARD COUNTING COMPLETED","UPLINK: SYNCHRONIZING CORE TELEMETRY STRINGS","DATA: A380-EK412 WATER SYSTEM LEVEL STABLE","HEARTBEAT: INGESTION FRAME BOUNDARY VERIFIED"];
-            loggerLoop = setInterval(() => {
-                if (!isAnomaly) {
-                    appendTerminalLog(packets[Math.floor(Math.random() * packets.length)], 'nominal');
-                    document.getElementById('networkLatency').innerText = ${Math.floor(Math.random()*3)+2}ms;
-                }
-            }, 2500);
-            metricPPS = setInterval(() => {
-                document.getElementById('ppsCounter').innerText = isAnomaly ? ${Math.floor(Math.random()*80)+420} pps : ${Math.floor(Math.random()*15)+45} pps;
-            }, 800);
-        }
-        window.simulateNormal = function() {isAnomaly = false;llmBox.classList.remove('intercepted');document.getElementById('sysPulse').classList.remove('alert');document.getElementById('sysStatusText').innerText = "NOMINAL";document.getElementById('sysStatusText').style.color = "var(--success)";document.getElementById('bar-cat').classList.remove('warning');document.getElementById('lbl-cat').style.color = '';fuel = 55; cat = 35; bag = 15;appendTerminalLog("SYSTEM ACCEPTS MANUAL RESIDENCY STATE OVERRIDE. CONSTRAINTS VERIFIED.");typeTerminalOutput("System back inside baseline operational margins.\nMonitoring Kafka data streams for injection vectors...");runSystemTelemetry(); runTelemetryNoise();}window.triggerAnomaly = async function() {if (isAnomaly) return;isAnomaly = true;clearInterval(loggerLoop);document.getElementById('sysPulse').classList.add('alert');document.getElementById('sysStatusText').innerText = "ALERT ACTIVE";document.getElementById('sysStatusText').style.color = "var(--danger)";document.getElementById('bar-cat').classList.add('warning');document.getElementById('lbl-cat').innerText = 'STALLED';document.getElementById('lbl-cat').style.color = 'var(--danger)';appendTerminalLog("WARN: CATERING FEED RE-SYNCHRONIZATION FAIL", "warn");document.getElementById('networkLatency').innerText = 142ms;try {const response = await fetch('/api/v1/telemetry', {method: 'POST',headers: {'Content-Type': 'application/json','Authorization': 'valid-emirates-hcc-token','X-State-Token': 'EXPIRED_OR_MALICIOUS_LATTICE_SIGNATURE'},body: JSON.stringify({ flight_id: "EK412", sensor_type: "CATERING", status: "STALLED", delay_minutes: 99 })});if (response.status === 400) {llmBox.classList.add('intercepted');setTimeout(() => appendTerminalLog("CRITICAL: DATA STREAM INJECTION PATTERN TRAPPED", "error"), 400);setTimeout(() => appendTerminalLog("SECURITY: CIRCUIT BREAKER ENGAGED AT EDGE GATEWAY", "sec"), 900);setTimeout(() => {typeTerminalOutput("⚡ CRITICAL SHIELD ACTIVE\n\nCompromised telemetry package dropped over streaming layers.\n\nACTION VERIFICATION:\n1. Lattice-token mismatch isolated target data frames.\n2. Non-blocking FastAPI router sandboxed compromised thread.\n3. Core ML optimization models protected from Cascade State Poisoning.");}, 1400);} else {runFallbackAviationLogic();}} catch (e) {runFallbackAviationLogic();}}function runFallbackAviationLogic() {setTimeout(() => appendTerminalLog("CRITICAL: CATERING RE-ROUTE SENSOR BUFFER BREACHED", "error"), 400);setTimeout(() => appendTerminalLog("EVENT: INITIALIZING AUTOMATED AGENTIC RE-ROUTING...", "warn"), 900);setTimeout(() => {typeTerminalOutput("ANOMALY DETECTED: Catering block at Gate B12 impacts concurrent Baggage sorting vectors. ATC Slot window closes in 42 minutes.\n\nMITIGATION RECOVERY DEPLOYED:\n1. Rerouting automated baggage tugs to Port Side Aft cargo port.\n2. Dispatching wireless operational directives to stagger gate boarding parameters.\n3. Turnaround critical path stabilized.");}, 1400);}// Core InitsappendTerminalLog("SYSTEM: KAFKA EVENT STREAM UPLINK INTERFACE OPENED");appendTerminalLog("SECURITY: SECURE POST-QUANTUM LATTICE PERIMETER CODES BOUND");typeTerminalOutput("System fully initialized.\nMonitoring high-velocity streams for telemetry anomalies...");runSystemTelemetry(); runTelemetryNoise();
+
+        // Initialize System
+        const sys = new TelemetrySystem();
+    </script>
+</body>
+</html>
+     
