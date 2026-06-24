@@ -106,41 +106,86 @@
         function typeLLM(text) {
             llmText.innerText = "";
             let i = 0;
-            const speed = 25;
+            const speed = 15; // Slightly faster to handle long security text clean
             function typeWriter() {
-                if (i < text.length) { llmText.innerHTML += text.charAt(i); i++; setTimeout(typeWriter, speed); }
+                if (i < text.length) { 
+                    if (text.charAt(i) === '\n') {
+                        llmText.innerHTML += '<br>';
+                    } else {
+                        llmText.innerHTML += text.charAt(i); 
+                    }
+                    i++; 
+                    setTimeout(typeWriter, speed); 
+                }
             }
             typeWriter();
         }
 
-        window.triggerAnomaly = function() {
+        window.simulateNormal = function() {
+            // Resets structural matrix elements back to normal states
+            document.getElementById('bar-cat').classList.remove('warning');
+            document.getElementById('bar-cat').style.width = '35%';
+            document.getElementById('time-cat').innerText = '35%';
+            document.getElementById('time-cat').style.color = '';
+            addLog("SYSTEM: MANUAL OVERRIDE ACCEPTS STATE RESET. TELEMETRY HEALTH NOMINAL.");
+            typeLLM("System nominal. Monitoring inbound telemetry for sequence violations.");
+        }
+
+        window.triggerAnomaly = async function() {
+            
             document.getElementById('bar-cat').classList.add('warning');
             document.getElementById('bar-cat').style.width = '12%';
             document.getElementById('time-cat').innerText = 'STALLED';
             document.getElementById('time-cat').style.color = '#dc2626';
 
-            addLog("WARN: CATERING TRUCK SENSOR LOST CONNECTION", true);
-            setTimeout(() => addLog("CRITICAL: CATERING DELAY EXCEEDS BUFFER (5 MINS)", true), 800);
-            setTimeout(() => addLog("EVENT: INITIATING AGENTIC RESOLUTION...", true), 1500);
+            addLog("WARN: CATERING TRUCK SENSOR FEEDS DE-SYNCHRONIZED", true);
+            
+            
+            try {
+                const response = await fetch('/api/v1/telemetry', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'valid-emirates-hcc-token',
+                        'X-State-Token': 'EXPIRED_OR_MALICIOUS_LATTICE_SIGNATURE' // Trips the FastAPI 400 block
+                    },
+                    body: JSON.stringify({
+                        flight_id: "EK412",
+                        sensor_type: "CATERING",
+                        status: "STALLED",
+                        delay_minutes: 99
+                    })
+                });
+
+                if (response.status === 400) {
+                    // Success case: Core API caught the threat vector via state verification checkpoints
+                    setTimeout(() => addLog("CRITICAL: DATA INJECTION VECTOR ISOLATED", true), 600);
+                    setTimeout(() => addLog("SECURITY: CIRCUIT BREAKER ENGAGED AT EDGE", true), 1200);
+                    
+                    setTimeout(() => {
+                        const securityMitigationPrompt = "CIRCUIT BREAKER ACTIVE: Compromised telemetry stream detected over active Kafka bus. \n\nPERIMETER ACTION DEPLOYED: \n1. Lattice-token signature verification mismatch dropped target payloads.\n2. Malicious state injection sandboxed at FastAPI gateway level.\n3. Downstream Core ML/Turnaround models protected from cascading state poisoning.";
+                        typeLLM(securityMitigationPrompt);
+                    }, 1800);
+                } else {
+                    // Fallback to standard agentic routing if backend is not actively running live ports
+                    executeStandardAgenticFallback();
+                }
+            } catch (error) {
+                // Network unreachable fallback so dashboard remains functional during standalone preview
+                console.warn("Backend offline, running localized simulation loop.");
+                executeStandardAgenticFallback();
+            }
+        }
+
+        function executeStandardAgenticFallback() {
+            setTimeout(() => addLog("CRITICAL: CATERING DELAY EXCEEDS BUFFER (5 MINS)", true), 600);
+            setTimeout(() => addLog("EVENT: INITIATING AGENTIC RESOLUTION...", true), 1200);
 
             setTimeout(() => {
-                const prompt = "ANOMALY DETECTED: Catering delay at Gate B12 will cause a cascading block on Baggage Loading operations. ATC Slot window closes in 42 minutes. \n\nMITIGATION DEPLOYED: \n1. Rerouting standard baggage tug to Port Side Aft cargo door.\n2. Alerting Gate Agents to initiate staggered boarding protocols.\n3. Turnaround sequence stabilized. No ATC delay expected.";
-                typeLLM(prompt);
-            }, 2000);
-        };
-
-        window.simulateNormal = function() {
-            document.getElementById('bar-cat').classList.remove('warning');
-            document.getElementById('bar-cat').style.width = '40%';
-            document.getElementById('time-cat').innerText = '40%';
-            document.getElementById('time-cat').style.color = '#737373';
-            addLog("CATERING CONNECTION RESTORED. RESUMING.");
-            typeLLM("System nominal. Cascading delay resolved. Monitoring sequence.");
-        };
-
-        setInterval(() => {
-            if(Math.random() > 0.7) addLog("HEARTBEAT: ALL GROUND SENSORS NOMINAL");
-        }, 5000);
+                const operationalPrompt = "ANOMALY DETECTED: Catering delay at Gate B12 will cause a cascading block on Baggage Loading operations. ATC Slot window closes in 42 minutes. \n\nMITIGATION DEPLOYED: \n1. Rerouting standard baggage tug to Port Side Aft cargo door.\n2. Alerting Gate Agents to initiate staggered boarding protocols.\n3. Turnaround sequence stabilized. No ATC delay expected.";
+                typeLLM(operationalPrompt);
+            }, 1800);
+        }
     </script>
 </body>
 </html>
