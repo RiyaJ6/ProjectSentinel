@@ -3,189 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Sentinel | Turnaround Recovery Engine</title>
+    <title>Project Sentinel | Autonomous Turnaround Control</title>
     <style>
         :root {
-            --bg-base: #0a0a0a;
-            --bg-panel: #141414;
-            --text-main: #ededed;
-            --text-muted: #737373;
+            --bg-base: #050506;
+            --bg-panel: #0b0c10;
+            --text-main: #f1f5f9;
+            --text-muted: #475569;
             --accent: #2563eb;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --border: #262626;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.15);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.15);
+            --warn: #f59e0b;
+            --border: #1e293b;
         }
-        body { background-color: var(--bg-base); color: var(--text-main); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-        .title-block h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
-        .title-block span { color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 2px; }
-        .live-indicator { display: flex; align-items: center; gap: 8px; color: var(--success); font-weight: bold; font-size: 0.875rem; }
-        .pulse { width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        .dashboard { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; flex: 1; min-height: 0; }
-        .panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; }
-        .panel h2 { margin: 0 0 15px 0; font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .log-container { flex: 1; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px; }
-        .log-entry { padding: 8px; background: rgba(0,0,0,0.3); border-left: 3px solid var(--success); animation: slideIn 0.3s ease-out; }
-        .log-entry.error { border-left-color: var(--danger); color: var(--danger); }
-        .timeline { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
-        .task { margin-bottom: 15px; }
-        .task-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
-        .bar-bg { height: 8px; background: #262626; border-radius: 4px; overflow: hidden; position: relative; }
-        .bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 1s ease, background-color 0.5s ease; }
-        .bar-fill.warning { background: var(--danger); }
-        .llm-box { background: #000; border: 1px solid var(--accent); padding: 15px; border-radius: 4px; font-size: 0.95rem; line-height: 1.5; flex: 1; position: relative; color: #60a5fa;}
-        .llm-box::before { content: 'Agentic AI Output'; position: absolute; top: -10px; left: 10px; background: var(--bg-panel); padding: 0 5px; font-size: 0.75rem; color: var(--accent); }
-        .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); animation: blink 1s infinite; vertical-align: middle; }
-        .controls { margin-top: 15px; display: flex; gap: 10px; }
-        button { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s; flex: 1; font-size: 0.8rem; text-transform: uppercase;}
-        button:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.05);}
-        button.btn-danger { border-color: var(--danger); color: var(--danger); }
-        button.btn-danger:hover { background: rgba(220, 38, 38, 0.1); }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        body { background-color: var(--bg-base); color: var(--text-main); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; margin: 0; padding: 16px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; overflow: hidden; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-shrink: 0; }
+        .title-block h1 { margin: 0; font-size: 1.25rem; letter-spacing: 3px; font-weight: 900; background: linear-gradient(90deg, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title-block span { color: var(--accent); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 4px; font-weight: 700; display: block; margin-top: 2px; }
+        
+        .sys-status-bar { display: flex; gap: 20px; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; }
+        .stat-node { display: flex; align-items: center; gap: 6px; }
+        .pulse { width: 6px; height: 6px; background-color: var(--success); border-radius: 50%; animation: blink 1.2s infinite; box-shadow: 0 0 8px var(--success); }
+        .pulse.alert { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        .dashboard { display: grid; grid-template-columns: 1.14fr 1.72fr 1.14fr; gap: 16px; flex: 1; min-height: 0; }
+        .panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; min-height: 0; position: relative; }
+        .panel h2 { margin: 0 0 14px 0; font-size: 0.72rem; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid var(--border); padding-bottom: 8px; letter-spacing: 2px; font-weight: 800; display: flex; justify-content: space-between; }
+        
+        .log-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 6px; padding-right: 4px; }
+        .log-container::-webkit-scrollbar, .scroll-wrapper::-webkit-scrollbar { width: 3px; }
+        .log-container::-webkit-scrollbar-thumb, .scroll-wrapper::-webkit-scrollbar-thumb { background: var(--border); }
+        
+        .log-entry { padding: 6px 8px; background: rgba(0,0,0,0.2); border-left: 2px solid var(--success); font-size: 0.72rem; line-height: 1.4; animation: slideIn 0.15s ease-out; word-break: break-all; }
+        .log-entry.warn { border-left-color: var(--warn); color: var(--warn); }
+        .log-entry.error { border-left-color: var(--danger); color: var(--danger); background: var(--danger-glow); }
+        .log-entry.sec { border-left-color: #a855f7; color: #c084fc; }
+        
+        .matrix-display { flex: 1; display: flex; flex-direction: column; gap: 20px; min-height: 0; overflow-y: auto; }
+        .task-node { background: rgba(255,255,255,0.01); border: 1px solid rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 4px; }
+        .task-meta { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px; font-weight: bold; }
+        .bar-container { height: 4px; background: #0f172a; border-radius: 2px; overflow: hidden; }
+        .bar-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--success)); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .bar-progress.warning { background: linear-gradient(90deg, var(--warn), var(--danger)) !important; }
+        
+        .canvas-wrapper { height: 110px; margin-top: 10px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: #020617; position: relative; }
+        
+        .scroll-wrapper { flex: 1; overflow-y: auto; }
+        .llm-box { background: #020203; border: 1px solid var(--border); padding: 14px; border-radius: 4px; font-size: 0.75rem; line-height: 1.6; min-height: 220px; position: relative; color: #38bdf8; white-space: pre-line; word-break: break-word; }
+        .llm-box.intercepted { border-color: var(--danger); color: #f87171; box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.05); }
+        .llm-box::before { content: 'Agentic Node Terminal'; position: absolute; top: -9px; left: 10px; background: var(--bg-panel); padding: 0 6px; font-size: 0.62rem; color: var(--accent); letter-spacing: 1px; font-weight: bold; }
+        .llm-box.intercepted::before { color: var(--danger); content: 'Security Perimeter Shield'; }
+        
+        .cursor { display: inline-block; width: 5px; height: 11px; background: var(--accent); animation: flash 0.8s infinite; vertical-align: middle; margin-left: 2px; }
+        .llm-box.intercepted .cursor { background: var(--danger); }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        .controls { margin-top: 14px; display: flex; gap: 10px; flex-shrink: 0; }
+        button { background: #0f172a; color: var(--text-main); border: 1px solid var(--border); padding: 10px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.72rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; transition: all 0.15s ease; flex: 1; }
+        button:hover { border-color: #475569; background: #1e293b; }
+        button.danger-btn { border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+        button.danger-btn:hover { background: var(--danger-glow); border-color: var(--danger); }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
     <header>
         <div class="title-block">
             <h1>PROJECT SENTINEL</h1>
-            <span>Autonomous Turnaround Recovery Engine</span>
+            <span>Event-Driven Turnaround Security Mesh</span>
         </div>
-        <div class="live-indicator"><div class="pulse"></div> SYSTEM ACTIVE</div>
+        <div class="sys-status-bar">
+            <div class="stat-node"><span class="pulse" id="sysPulse"></span><span id="sysStatusText" style="color:var(--success)">NOMINAL</span></div>
+            <div class="stat-node" style="color:var(--text-muted)">LATENCY: <span id="networkLatency" style="color:var(--accent)">2ms</span></div>
+            <div class="stat-node" style="color:var(--text-muted)">UPLINK: <span style="color:#a855f7">PQ-LATTICE</span></div>
+        </div>
     </header>
+
     <div class="dashboard">
+        <!-- Panel 1: Live Event Logger -->
         <div class="panel">
-            <h2>Kafka Telemetry Stream</h2>
-            <div class="log-container" id="logStream">
-                <div class="log-entry">[12:00:01] FLIGHT A380-EK412 ON BLOCKS</div>
-                <div class="log-entry">[12:02:14] PASSENGER DISEMBARKATION INITIATED</div>
-                <div class="log-entry">[12:05:00] FUEL TRUCK CONNECTED - PUMPING</div>
-            </div>
+            <h2>Kafka Telemetry Stream <span style="color:var(--accent)" id="ppsCounter">0 pps</span></h2>
+            <div class="log-container" id="logStream"></div>
         </div>
+        
+        <!-- Panel 2: Turnaround Matrix & Real-time Scope -->
         <div class="panel">
             <h2>Live Turnaround Matrix (Gate B12)</h2>
-            <div class="timeline">
-                <div class="task">
-                    <div class="task-header"><span>Fueling</span> <span id="time-fuel">45%</span></div>
-                    <div class="bar-bg"><div class="bar-fill" id="bar-fuel" style="width: 45%;"></div></div>
+            <div class="matrix-display">
+                <div class="task-node">
+                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Fueling]</span><span id="lbl-fuel">45%</span></div>
+                    <div class="bar-container"><div class="bar-progress" id="bar-fuel" style="width: 45%;"></div></div>
                 </div>
-                <div class="task">
-                    <div class="task-header"><span>Catering</span> <span id="time-cat">10%</span></div>
-                    <div class="bar-bg"><div class="bar-fill" id="bar-cat" style="width: 10%;"></div></div>
+                <div class="task-node">
+                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Catering]</span><span id="lbl-cat">10%</span></div>
+                    <div class="bar-container"><div class="bar-progress" id="bar-cat" style="width: 10%;"></div></div>
                 </div>
-                <div class="task">
-                    <div class="task-header"><span>Baggage Loading</span> <span id="time-bag">0%</span></div>
-                    <div class="bar-bg"><div class="bar-fill" id="bar-bag" style="width: 0%;"></div></div>
+                <div class="task-node">
+                    <div class="task-meta"><span style="color:#94a3b8">Telemetry Stream [Baggage]</span><span id="lbl-bag">0%</span></div>
+                    <div class="bar-container"><div class="bar-progress" id="bar-bag" style="width: 0%;"></div></div>
+                </div>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="telemetryChart"></canvas>
                 </div>
             </div>
+            
             <div class="controls">
-                <button onclick="simulateNormal()">Resume Sequence</button>
-                <button class="btn-danger" onclick="triggerAnomaly()">Inject Anomaly</button>
+                <button onclick="simulateNormal()">Reset Core States</button>
+                <button class="danger-btn" onclick="triggerAnomaly()">Inject Anomaly Stream</button>
             </div>
         </div>
+        
+        <!-- Panel 3: Agentic Execution System -->
         <div class="panel">
             <h2>Autonomous Mitigation</h2>
-            <div class="llm-box">
-                <span id="llm-text">System nominal. Monitoring inbound telemetry for sequence violations.</span>
-                <span class="cursor" id="cursor"></span>
+            <div class="scroll-wrapper">
+                <div class="llm-box" id="llmBox">
+                    <span id="llm-text">Awaiting uplink synchronization parameters...</span><span class="cursor"></span>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
         const logStream = document.getElementById('logStream');
         const llmText = document.getElementById('llm-text');
+        const llmBox = document.getElementById('llmBox');
+        const canvas = document.getElementById('telemetryChart');
+        const ctx = canvas.getContext('2d');
+
+        let loops, loggerLoop, metricPPS;
+        let isAnomaly = false;
         
-        function addLog(message, isError = false) {
+        // Tracking State Metrics
+        let fuel = 45, cat = 10, bag = 0;
+        let chartData = Array(30).fill(12);
+
+        function getTimestamp() { return new Date().toLocaleTimeString('en-US', { hour12: false }); }
+
+        function appendTerminalLog(msg, type = 'nominal') {
             const entry = document.createElement('div');
-            entry.className = `log-entry ${isError ? 'error' : ''}`;
-            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-            entry.innerText = `[${time}] ${message}`;
-            logStream.prepend(entry);
+            entry.className = log-entry ${type};
+            entry.innerText = [${getTimestamp()}] ${msg};
+            logStream.appendChild(entry);
+            if (logStream.children.length > 35) logStream.removeChild(logStream.firstChild);
         }
-
-        function typeLLM(text) {
-            llmText.innerText = "";
-            let i = 0;
-            const speed = 15; // Slightly faster to handle long security text clean
-            function typeWriter() {
-                if (i < text.length) { 
-                    if (text.charAt(i) === '\n') {
-                        llmText.innerHTML += '<br>';
-                    } else {
-                        llmText.innerHTML += text.charAt(i); 
-                    }
-                    i++; 
-                    setTimeout(typeWriter, speed); 
+        
+        function typeTerminalOutput(text) {
+            llmText.innerText = ""; let i = 0;
+            function run() {
+                if (i < text.length) {
+                    llmText.innerHTML += text.charAt(i) === '\n' ? '' : text.charAt(i);
+                    i++;
+                    setTimeout(run, 8);
                 }
             }
-            typeWriter();
+            run();
         }
-
-        window.simulateNormal = function() {
-            // Resets structural matrix elements back to normal states
-            document.getElementById('bar-cat').classList.remove('warning');
-            document.getElementById('bar-cat').style.width = '35%';
-            document.getElementById('time-cat').innerText = '35%';
-            document.getElementById('time-cat').style.color = '';
-            addLog("SYSTEM: MANUAL OVERRIDE ACCEPTS STATE RESET. TELEMETRY HEALTH NOMINAL.");
-            typeLLM("System nominal. Monitoring inbound telemetry for sequence violations.");
+        
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
         }
-
-        window.triggerAnomaly = async function() {
-            
-            document.getElementById('bar-cat').classList.add('warning');
-            document.getElementById('bar-cat').style.width = '12%';
-            document.getElementById('time-cat').innerText = 'STALLED';
-            document.getElementById('time-cat').style.color = '#dc2626';
-
-            addLog("WARN: CATERING TRUCK SENSOR FEEDS DE-SYNCHRONIZED", true);
-            
-            
-            try {
-                const response = await fetch('/api/v1/telemetry', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'valid-emirates-hcc-token',
-                        'X-State-Token': 'EXPIRED_OR_MALICIOUS_LATTICE_SIGNATURE' // Trips the FastAPI 400 block
-                    },
-                    body: JSON.stringify({
-                        flight_id: "EK412",
-                        sensor_type: "CATERING",
-                        status: "STALLED",
-                        delay_minutes: 99
-                    })
-                });
-
-                if (response.status === 400) {
-                    // Success case: Core API caught the threat vector via state verification checkpoints
-                    setTimeout(() => addLog("CRITICAL: DATA INJECTION VECTOR ISOLATED", true), 600);
-                    setTimeout(() => addLog("SECURITY: CIRCUIT BREAKER ENGAGED AT EDGE", true), 1200);
-                    
-                    setTimeout(() => {
-                        const securityMitigationPrompt = "CIRCUIT BREAKER ACTIVE: Compromised telemetry stream detected over active Kafka bus. \n\nPERIMETER ACTION DEPLOYED: \n1. Lattice-token signature verification mismatch dropped target payloads.\n2. Malicious state injection sandboxed at FastAPI gateway level.\n3. Downstream Core ML/Turnaround models protected from cascading state poisoning.";
-                        typeLLM(securityMitigationPrompt);
-                    }, 1800);
-                } else {
-                    // Fallback to standard agentic routing if backend is not actively running live ports
-                    executeStandardAgenticFallback();
-                }
-            } catch (error) {
-                // Network unreachable fallback so dashboard remains functional during standalone preview
-                console.warn("Backend offline, running localized simulation loop.");
-                executeStandardAgenticFallback();
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        function renderChartFrame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#111827'; 
+            ctx.lineWidth = 1;
+            for(let i = 0; i < canvas.height; i += 25) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i);
+                ctx.stroke();
             }
+            
+            ctx.beginPath();
+            ctx.strokeStyle = isAnomaly ? '#ef4444' : '#10b981';
+            ctx.lineWidth = 1.5;
+            let step = canvas.width / (chartData.length - 1);
+            for(let i = 0; i < chartData.length; i++) {
+                let x = i * step;
+                let y = canvas.height - (chartData[i] * (canvas.height / 100));
+                if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            chartData.push(isAnomaly ? Math.floor(Math.random()*40)+55 : Math.floor(Math.random()*12)+20);
+            chartData.shift();
+            requestAnimationFrame(renderChartFrame);
         }
-
-        function executeStandardAgenticFallback() {
-            setTimeout(() => addLog("CRITICAL: CATERING DELAY EXCEEDS BUFFER (5 MINS)", true), 600);
-            setTimeout(() => addLog("EVENT: INITIATING AGENTIC RESOLUTION...", true), 1200);
-
-            setTimeout(() => {
-                const operationalPrompt = "ANOMALY DETECTED: Catering delay at Gate B12 will cause a cascading block on Baggage Loading operations. ATC Slot window closes in 42 minutes. \n\nMITIGATION DEPLOYED: \n1. Rerouting standard baggage tug to Port Side Aft cargo door.\n2. Alerting Gate Agents to initiate staggered boarding protocols.\n3. Turnaround sequence stabilized. No ATC delay expected.";
-                typeLLM(operationalPrompt);
-            }, 1800);
+            requestAnimationFrame(renderChartFrame);
+        
+        function runSystemTelemetry() {
+            clearInterval(loops);
+            loops = setInterval(() => {
+                if (!isAnomaly) {
+                    if (fuel < 100) fuel += Math.random() > 0.4 ? 1 : 0;
+                    if (cat < 100) cat += Math.random() > 0.5 ? 1 : 0;
+                    if (bag < 100 && cat > 25) bag += Math.random() > 0.4 ? 1 : 0;
+                    document.getElementById('bar-fuel').style.width = ${fuel}%;
+                    document.getElementById('lbl-fuel').innerText = ${fuel}%;
+                    document.getElementById('bar-cat').style.width = ${cat}%;document.getElementById('lbl-cat').innerText = ${cat}%;
+                    document.getElementById('bar-bag').style.width = ${bag}%;document.getElementById('lbl-bag').innerText = ${bag}%;
+                }
+            }, 1000);
         }
-    </script>
-</body>
-</html>
+        function runTelemetryNoise() {
+            clearInterval(loggerLoop);
+            clearInterval(metricPPS);
+            const packets = ["HEARTBEAT: GROUND SENSORS UPLINK INTEGRITY nominal","METRIC: PASSENGER ON-BOARD COUNTING COMPLETED","UPLINK: SYNCHRONIZING CORE TELEMETRY STRINGS","DATA: A380-EK412 WATER SYSTEM LEVEL STABLE","HEARTBEAT: INGESTION FRAME BOUNDARY VERIFIED"];
+            loggerLoop = setInterval(() => {
+                if (!isAnomaly) {
+                    appendTerminalLog(packets[Math.floor(Math.random() * packets.length)], 'nominal');
+                    document.getElementById('networkLatency').innerText = ${Math.floor(Math.random()*3)+2}ms;
+                }
+            }, 2500);
+            metricPPS = setInterval(() => {
+                document.getElementById('ppsCounter').innerText = isAnomaly ? ${Math.floor(Math.random()*80)+420} pps : ${Math.floor(Math.random()*15)+45} pps;
+            }, 800);
+        }
+        window.simulateNormal = function() {isAnomaly = false;llmBox.classList.remove('intercepted');document.getElementById('sysPulse').classList.remove('alert');document.getElementById('sysStatusText').innerText = "NOMINAL";document.getElementById('sysStatusText').style.color = "var(--success)";document.getElementById('bar-cat').classList.remove('warning');document.getElementById('lbl-cat').style.color = '';fuel = 55; cat = 35; bag = 15;appendTerminalLog("SYSTEM ACCEPTS MANUAL RESIDENCY STATE OVERRIDE. CONSTRAINTS VERIFIED.");typeTerminalOutput("System back inside baseline operational margins.\nMonitoring Kafka data streams for injection vectors...");runSystemTelemetry(); runTelemetryNoise();}window.triggerAnomaly = async function() {if (isAnomaly) return;isAnomaly = true;clearInterval(loggerLoop);document.getElementById('sysPulse').classList.add('alert');document.getElementById('sysStatusText').innerText = "ALERT ACTIVE";document.getElementById('sysStatusText').style.color = "var(--danger)";document.getElementById('bar-cat').classList.add('warning');document.getElementById('lbl-cat').innerText = 'STALLED';document.getElementById('lbl-cat').style.color = 'var(--danger)';appendTerminalLog("WARN: CATERING FEED RE-SYNCHRONIZATION FAIL", "warn");document.getElementById('networkLatency').innerText = 142ms;try {const response = await fetch('/api/v1/telemetry', {method: 'POST',headers: {'Content-Type': 'application/json','Authorization': 'valid-emirates-hcc-token','X-State-Token': 'EXPIRED_OR_MALICIOUS_LATTICE_SIGNATURE'},body: JSON.stringify({ flight_id: "EK412", sensor_type: "CATERING", status: "STALLED", delay_minutes: 99 })});if (response.status === 400) {llmBox.classList.add('intercepted');setTimeout(() => appendTerminalLog("CRITICAL: DATA STREAM INJECTION PATTERN TRAPPED", "error"), 400);setTimeout(() => appendTerminalLog("SECURITY: CIRCUIT BREAKER ENGAGED AT EDGE GATEWAY", "sec"), 900);setTimeout(() => {typeTerminalOutput("⚡ CRITICAL SHIELD ACTIVE\n\nCompromised telemetry package dropped over streaming layers.\n\nACTION VERIFICATION:\n1. Lattice-token mismatch isolated target data frames.\n2. Non-blocking FastAPI router sandboxed compromised thread.\n3. Core ML optimization models protected from Cascade State Poisoning.");}, 1400);} else {runFallbackAviationLogic();}} catch (e) {runFallbackAviationLogic();}}function runFallbackAviationLogic() {setTimeout(() => appendTerminalLog("CRITICAL: CATERING RE-ROUTE SENSOR BUFFER BREACHED", "error"), 400);setTimeout(() => appendTerminalLog("EVENT: INITIALIZING AUTOMATED AGENTIC RE-ROUTING...", "warn"), 900);setTimeout(() => {typeTerminalOutput("ANOMALY DETECTED: Catering block at Gate B12 impacts concurrent Baggage sorting vectors. ATC Slot window closes in 42 minutes.\n\nMITIGATION RECOVERY DEPLOYED:\n1. Rerouting automated baggage tugs to Port Side Aft cargo port.\n2. Dispatching wireless operational directives to stagger gate boarding parameters.\n3. Turnaround critical path stabilized.");}, 1400);}// Core InitsappendTerminalLog("SYSTEM: KAFKA EVENT STREAM UPLINK INTERFACE OPENED");appendTerminalLog("SECURITY: SECURE POST-QUANTUM LATTICE PERIMETER CODES BOUND");typeTerminalOutput("System fully initialized.\nMonitoring high-velocity streams for telemetry anomalies...");runSystemTelemetry(); runTelemetryNoise();
