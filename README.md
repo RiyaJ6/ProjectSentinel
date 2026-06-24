@@ -24,13 +24,13 @@ Run the system simulation locally in under 60 seconds:
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/RiyaJ6/sentinel-ops-orchestrator.git](https://github.com/RiyaJ6/sentinel-ops-orchestrator.git)
+git clone [https://github.com/RiyaJ6/ProjectSentinel.git](https://github.com/RiyaJ6/ProjectSentinel.git)
 
 # 2. Spin up the containerized architecture
 docker-compose up -d
 
 # 3. View the live telemetry dashboard
-# Navigate to: http://localhost:8000
+ Navigate to: http://localhost:8000
 ```
 </p>
 <div align="center">
